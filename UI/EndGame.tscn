@@ -1,0 +1,109 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://UI/Menu.gd" type="Script" id=1]
+[ext_resource path="res://Assets/Datalegreya-Thin.otf" type="DynamicFontData" id=2]
+[ext_resource path="res://Assets/icons8-play-52.png" type="Texture" id=3]
+[ext_resource path="res://Assets/icons8-esc-100.png" type="Texture" id=4]
+[ext_resource path="res://Assets/Under-the-Clouds.ogv" type="VideoStream" id=5]
+
+[sub_resource type="DynamicFont" id=1]
+size = 53
+font_data = ExtResource( 2 )
+
+[node name="Menu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VideoPlayer" type="VideoPlayer" parent="."]
+margin_right = 582.0
+margin_bottom = 1022.0
+mouse_filter = 2
+stream = ExtResource( 5 )
+autoplay = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Background" type="ColorRect" parent="."]
+margin_left = 35.0
+margin_top = 44.0
+margin_right = 544.0
+margin_bottom = 319.0
+color = Color( 0.14902, 0.768627, 0.709804, 0.501961 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="."]
+margin_left = 4.00452
+margin_top = -61.1265
+margin_right = 580.005
+margin_bottom = 399.874
+custom_fonts/font = SubResource( 1 )
+text = "You win!
+Thanks for playing!"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Play" type="Button" parent="."]
+anchor_top = -0.00109622
+anchor_bottom = 0.0164819
+margin_left = 68.2566
+margin_top = 454.587
+margin_right = 195.257
+margin_bottom = 501.59
+rect_scale = Vector2( 1.413, 1.5 )
+text = "Play Again"
+icon = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Quit" type="Button" parent="."]
+margin_left = 305.389
+margin_top = 445.71
+margin_right = 485.389
+margin_bottom = 551.71
+text = "Quit"
+icon = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Cred" type="Label" parent="."]
+margin_left = 67.3188
+margin_top = 815.089
+margin_right = 421.319
+margin_bottom = 923.089
+rect_scale = Vector2( 1.3, 1.3 )
+text = "Game template by Jason Francis
+Game implementation and details by Grayson Clark
+Music by Eric Matyas."
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Score" type="Label" parent="."]
+margin_left = -43.135
+margin_top = 247.682
+margin_right = 443.865
+margin_bottom = 308.682
+rect_scale = Vector2( 1.4, 1.4 )
+text = "Your score:  Achieved in X Moves!"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="finished" from="VideoPlayer" to="." method="_on_VideoPlayer_finished"]
+[connection signal="pressed" from="Play" to="." method="_on_Play_pressed"]
+[connection signal="pressed" from="Quit" to="." method="_on_Quit_pressed"]

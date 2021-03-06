@@ -1,10 +1,89 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Pieces/Piece.gd" type="Script" id=1]
 [ext_resource path="res://icon.png" type="Texture" id=2]
+[ext_resource path="res://Assets/sparkle_single.png" type="Texture" id=3]
+[ext_resource path="res://Assets/pop.wav" type="AudioStream" id=4]
+[ext_resource path="res://Assets/Woosh.wav" type="AudioStream" id=5]
+
+[sub_resource type="Curve" id=1]
+min_value = -360.0
+max_value = 360.0
+_data = [ Vector2( 0.0126582, -328.909 ), 0.0, 0.0, 0, 0, Vector2( 0.949367, 360 ), -195.656, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=2]
+curve = SubResource( 1 )
+
+[sub_resource type="Curve" id=3]
+min_value = -360.0
+max_value = 360.0
+_data = [ Vector2( 0.00632912, -355.909 ), 0.0, 1666.18, 0, 0, Vector2( 0.974684, 360 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=4]
+curve = SubResource( 3 )
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0, 0.303704, 0.62963, 1 )
+colors = PoolColorArray( 0, 0, 0, 1, 0.303704, 0.303704, 0.303704, 0.696296, 0.392593, 0.392593, 0.392593, 0.607407, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+
+[sub_resource type="Curve" id=7]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.167045 ), 0.0448863, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=8]
+curve = SubResource( 7 )
+
+[sub_resource type="ParticlesMaterial" id=9]
+lifetime_randomness = 0.25
+trail_size_modifier = SubResource( 8 )
+emission_shape = 1
+emission_sphere_radius = 1.0
+flag_disable_z = true
+spread = 180.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 551.72
+initial_velocity_random = 1.0
+angular_velocity = 132.41
+angular_velocity_random = 0.76
+angular_velocity_curve = SubResource( 4 )
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+linear_accel = -1.15
+linear_accel_random = 0.56
+radial_accel = 37.57
+radial_accel_random = 1.0
+angle = -281.4
+angle_random = 1.0
+angle_curve = SubResource( 2 )
+scale_random = 1.0
+color_ramp = SubResource( 6 )
+hue_variation = 0.13
+hue_variation_random = 0.47
 
 [node name="Piece" type="Node2D"]
 script = ExtResource( 1 )
+__meta__ = {
+"_edit_horizontal_guides_": [  ]
+}
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Body" type="Sprite" parent="."]
 texture = ExtResource( 2 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="DeathEffect" type="Particles2D" parent="."]
+z_index = 1
+emitting = false
+amount = 20
+explosiveness = 0.92
+randomness = 0.24
+process_material = SubResource( 9 )
+texture = ExtResource( 3 )
+
+[node name="Pop" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 4 )
+
+[node name="Woosh" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 5 )

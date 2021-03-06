@@ -1,6 +1,8 @@
 extends Node
 
 var score = 0
+var moves = 0
+var curr_lvl = 1
 signal changed
 var scores = {
 	0:0,
@@ -16,7 +18,7 @@ var scores = {
 }
 
 func _unhandled_input(event):
-	if event.is_action_pressed("quit"):
+	if event.is_action_pressed("quit") and get_tree().current_scene.name == "Menu":
 		get_tree().quit()
 
 func change_score(s):

@@ -18,26 +18,46 @@ var possible_pieces = [
 	load("res://Pieces/Blue.tscn")
 ]
 
-var all_pieces
+const score_for_incredible = 6
+const score_for_level_2 = 350  # if i was making this into a full game, this wouldn't be hardcoded
+
+var all_pieces # 2D array of Piece scenes
 
 var first_touch
 var final_touch
 var controlling = false
 
 export (PackedScene) var background
+onready var camera = get_node("/root/Game/Camera2D")
+onready var IsPaused = get_node("/root/Game/IsPaused")
+onready var Incredible = load("res://UI/Incredible.tscn").instance()
 
 func _ready():
+	get_node("../HUD/Level").text = "Level: " + str(Global.curr_lvl)
+	if Global.curr_lvl > 1:
+		self.height += 1
+		#self.width += 1
+	add_child(Incredible)
 	randomize()
 	all_pieces = make_array()
 	setup_board()
-	generate_pieces()
+	refill_columns()
+
+func _process(_delta):
+	touch_input()
+	find_matches()
+	refill_columns()
+	if Input.is_action_just_pressed("quit"):
+		yield(get_tree().create_timer(0.2), "timeout")
+		get_tree().paused = not get_tree().paused
+		IsPaused.visible = true
 
 func make_array():
 	var matrix = [ ]
 	for x in range(width):
 		matrix.append([ ])
 		for _y in range(height):
-			matrix[x].append(0)
+			matrix[x].append(null)
 	return matrix
 
 func setup_board():
@@ -46,26 +66,6 @@ func setup_board():
 			var b = background.instance()
 			add_child(b)
 			b.position = Vector2((xStart + (i * offset)), (yStart - (j * offset)))
-
-func generate_pieces():
-	for i in width:
-		for j in height:
-			var piece_to_use = floor(rand_range(0, possible_pieces.size()))
-			if piece_to_use == 6:
-				piece_to_use = 5
-			piece = possible_pieces[piece_to_use].instance()
-			
-			var loops = 0
-			while check_for_matches(i,j, piece.color) && loops < 100:
-				piece_to_use = floor(rand_range(0, possible_pieces.size()))
-				if piece_to_use == 6:
-					piece_to_use = 5
-				piece = possible_pieces[piece_to_use].instance()
-				loops += 1
-			
-			add_child(piece)
-			piece.position = Vector2(xStart + i * offset, yStart - j * offset)
-			all_pieces[i][j] = piece
 
 func check_for_matches(column, row, color):
 	#Check Left
@@ -88,11 +88,12 @@ func check_for_matches(column, row, color):
 	return false
 
 func pixel_to_grid(touch_position):
-	var column = round((touch_position.x - xStart)/offset)
-	var row = round((touch_position.y - yStart)/-offset)
+	var column = int(round((touch_position.x - xStart)/offset)) # need to cast to int here to avoid -0 
+	var row = int(round((touch_position.y - yStart)/-offset))
 	return Vector2(column, row)
 
-func is_in_grid(touch_position):
+func is_mouse_in_grid():
+	var touch_position = pixel_to_grid(get_global_mouse_position())
 	if(touch_position.x >= 0 && touch_position.x < width):
 		if(touch_position.y >= 0 && touch_position.y < height):
 			return true
@@ -105,6 +106,8 @@ func swap_pieces(column, row, direction):
 	all_pieces[column][row] = other_piece
 	first_piece.move_piece(Vector2(direction.x * offset, direction.y * -offset))
 	other_piece.move_piece(Vector2(direction.x * -offset, direction.y * offset))
+	Global.moves += 1
+	get_node("../HUD/Moves").text = "Moves: " + str(Global.moves)
 
 func touch_difference(touch_1, touch_2):
 	var difference = touch_2 - touch_1
@@ -118,11 +121,6 @@ func touch_difference(touch_1, touch_2):
 			swap_pieces(touch_1.x, touch_1.y, Vector2(0, 1))
 		elif(difference.y < 0):
 			swap_pieces(touch_1.x, touch_1.y, Vector2(0, -1))
-
-func _process(_delta):
-	touch_input()
-	find_matches()
-	refill_columns()
 	
 
 func find_matches():
@@ -157,6 +155,12 @@ func find_matches():
 				mark_across(i,j, all_pieces[i][j].color)
 				mark_down(i,j, all_pieces[i][j].color)
 				Global.change_score(Global.scores[count_matched])
+				if Global.score > score_for_level_2 && Global.curr_lvl < 2:
+					Global.curr_lvl += 1
+					get_tree().change_scene(get_tree().current_scene.filename)
+				elif Global.score > score_for_level_2*2 and Global.curr_lvl >= 2: # i know this is bad but im not planning on adding other levels so im fine with it
+					get_tree().change_scene("res://UI/EndGame.tscn")
+
 	destroy_matched()
 
 func check_across(i,j,value):
@@ -199,54 +203,54 @@ func destroy_matched():
 			if(all_pieces[i][j].is_matched):
 				all_pieces[i][j].die()
 				all_pieces[i][j] = null
-	collapse_columns()
 
-func collapse_columns():
-	for i in width:
-		for j in height:
-			if(all_pieces[i][j] == null):
-				for k in range(j + 1, height):
-					if(all_pieces[i][k] != null):
-						all_pieces[i][j] = all_pieces[i][k]
-						all_pieces[i][k].move_piece(Vector2(0, (k-j) * offset))
-						all_pieces[i][k] = null
-						break
+	# this func seemed to just introduce bugs. Using refill_columns basically does the same thing,
+	#  just instead of "moving" the pieces into place, it just spawns them in. A worthwhile trade for me because
+	#  with this I can tween the movement of tile swaps without weird race conditions
+	#collapse_columns()  
+	
+	refill_columns()
 
 func refill_columns():
+	var num = 0
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] == null:
-				var piece_to_use = floor(rand_range(0, possible_pieces.size()))
-				if piece_to_use == 6:
-					piece_to_use = 5
-				piece = possible_pieces[piece_to_use].instance()
-				
+				num += 1
+				piece = get_new_piece()
 				var loops = 0
 				while check_for_matches(i,j, piece.color) && loops < 100:
-					piece_to_use = floor(rand_range(0, possible_pieces.size()))
-					if piece_to_use == 6:
-						piece_to_use = 5
-					piece = possible_pieces[piece_to_use].instance()
+					piece = get_new_piece()
 					loops += 1
 				
 				add_child(piece)
 				piece.position = Vector2(xStart + i * offset, yStart - j * offset)
 				all_pieces[i][j] = piece
+	
+	if num >= score_for_incredible and Global.moves > 0:
+		Incredible.show()
+
+func get_new_piece():
+	var piece_to_use = floor(rand_range(0, possible_pieces.size()))
+	if piece_to_use == 6: # not sure what this is for. This check never passes since possible_pieces will always be size 3
+		piece_to_use = 5
+	return possible_pieces[piece_to_use].instance()
 
 func touch_input():
 	if(Input.is_action_just_pressed("ui_touch")):
-		if(is_in_grid(pixel_to_grid(get_global_mouse_position()))):
+		if is_mouse_in_grid():
 			controlling = true
 			first_touch = pixel_to_grid(get_global_mouse_position())
 			all_pieces[first_touch.x][first_touch.y].selected = true
 	if(Input.is_action_just_released("ui_touch") && controlling):
-		if(is_in_grid(pixel_to_grid(get_global_mouse_position()))):
-			controlling = false
+		controlling = false
+		if is_mouse_in_grid():
 			final_touch = pixel_to_grid(get_global_mouse_position())
 			all_pieces[first_touch.x][first_touch.y].selected = false
 			touch_difference(first_touch, final_touch)
+		else:
+			all_pieces[first_touch.x][first_touch.y].selected = false
 
-func move_piece(p, position_change):
+
+func move_piece(p, position_change): # also dunno why this is here, don't think it ever gets called...
 	p.position += position_change
-
-

@@ -1,17 +1,41 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Grid/grid.gd" type="Script" id=1]
 [ext_resource path="res://Pieces/Piece Background.tscn" type="PackedScene" id=2]
 [ext_resource path="res://UI/HUD.gd" type="Script" id=3]
+[ext_resource path="res://Camera/Camera.gd" type="Script" id=4]
+[ext_resource path="res://UI/IsPaused.gd" type="Script" id=5]
+[ext_resource path="res://Assets/Under-the-Clouds.ogv" type="VideoStream" id=6]
+[ext_resource path="res://Assets/Datalegreya-Thin.otf" type="DynamicFontData" id=7]
+[ext_resource path="res://Grid/Game.gd" type="Script" id=8]
+[ext_resource path="res://Assets/Rivers-of-Jewels.wav" type="AudioStream" id=9]
+
+[sub_resource type="DynamicFont" id=1]
+size = 30
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 7 )
 
 [node name="Game" type="Node2D"]
+script = ExtResource( 8 )
+
+[node name="VideoPlayer" type="VideoPlayer" parent="."]
+margin_left = -72.0
+margin_top = -205.946
+margin_right = 679.0
+margin_bottom = 1045.05
+stream = ExtResource( 6 )
+autoplay = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="grid" type="Node2D" parent="."]
 script = ExtResource( 1 )
 width = 4
 height = 5
 xStart = 96
-yStart = 832
+yStart = 870
 offset = 128
 background = ExtResource( 2 )
 
@@ -24,6 +48,68 @@ __meta__ = {
 }
 
 [node name="Score" type="Label" parent="HUD"]
-margin_right = 576.0
-margin_bottom = 20.0
-text = "Score: "
+margin_left = 7.0
+margin_top = 11.0
+margin_right = 346.0
+margin_bottom = 48.0
+custom_fonts/font = SubResource( 1 )
+text = "Score: 0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Moves" type="Label" parent="HUD"]
+margin_left = 8.0
+margin_top = 98.0
+margin_right = 263.0
+margin_bottom = 136.0
+custom_fonts/font = SubResource( 1 )
+text = "Moves: 0"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Level" type="Label" parent="HUD"]
+margin_left = 9.0
+margin_top = 52.3811
+margin_right = 292.0
+margin_bottom = 89.3811
+custom_fonts/font = SubResource( 1 )
+text = "Level: 1"
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 287.262, 510.268 )
+anchor_mode = 0
+current = true
+script = ExtResource( 4 )
+target = NodePath("..")
+
+[node name="IsPaused" type="Label" parent="."]
+pause_mode = 2
+visible = false
+margin_left = 53.1846
+margin_top = 73.4266
+margin_right = 344.185
+margin_bottom = 120.427
+rect_scale = Vector2( 1.661, 2.148 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "Game Paused. 
+Press Esc again to exit.
+Press Enter to resume."
+align = 1
+valign = 1
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Music" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 9 )
+autoplay = true
+[connection signal="finished" from="VideoPlayer" to="." method="_on_VideoPlayer_finished"]
+[connection signal="finished" from="Music" to="." method="_on_Music_finished"]
