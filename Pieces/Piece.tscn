@@ -87,3 +87,4 @@ stream = ExtResource( 4 )
 
 [node name="Woosh" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource( 5 )
+volume_db = 14.956
